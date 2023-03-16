@@ -34,3 +34,11 @@ Physical Surface("The surface") += {1};
 Physical Surface("The surface") += {1};
 //+
 Physical Surface("The surface") += {1};
+//+
+Physical Surface("The surface") += {1};
+//+
+Physical Surface("side wall") += {1};
+//+
+Physical Surface("side wall") += {1};
+//+
+Physical Surface("side wall") += {1};
