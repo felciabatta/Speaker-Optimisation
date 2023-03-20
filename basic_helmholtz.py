@@ -1,8 +1,9 @@
 """Trying to solve Helmholtz"""
 
 from numpy import pi
+from utils import get_path
 
-filename_mesh = "square room 2D.mesh"
+filename_mesh = get_path("geomeshes/square room/square room 2D.mesh")
 
 c = 1
 f = 1/(2*pi)
