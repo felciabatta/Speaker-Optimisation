@@ -1,0 +1,21 @@
+name: MDM3C-env
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - fenics-dolfinx=0.6.0
+  - python-gmsh
+  - pyvista
+  - python>=3.9
+  - numpy
+  - ipykernel
+  - matplotlib # for pyvista cmaps
+  - trame # for interactive plots
+  - ipywidgets # for interactive plots
+  # - sfepy # original FEM package
+  # - mpich
+prefix: /Users/felixdubicki-piper/opt/anaconda3/envs/MDM3C-env
+# NOTE: pyvista and fenics-dolfinx creates an issue with tbb package
+#        use `conda update -c conda-forge tbb` to resolve the issue
+# TIP: install and use libmamba solver 
+#      otherwise this env will take forever to install
