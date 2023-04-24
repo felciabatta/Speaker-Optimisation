@@ -54,7 +54,7 @@ Circle(5) = {5, 1, 0, 0.2, 0, 2*Pi};
 Curve Loop(2) = {5}; // source
 
 // HOLE
-hole_t = 7.5
+hole_t = 7.5;
 hole_b = 2.5;
 hole_l = 0.5;
 hole_r = 9.5;
@@ -70,7 +70,7 @@ Line(16) = {16, 17};
 Line(17) = {17, 14};
 // loop
 Curve Loop(4) = {14, 15, 16, 17};
-Physical Curve{"Hole", 3} = {4};
+Physical Curve("Hole", 3) = {4};
 
 // SURFACES
 Plane Surface(1) = {1, 2, 3, 4}; // room surface
