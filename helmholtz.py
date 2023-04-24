@@ -4,13 +4,14 @@ from numpy import pi
 from utils import get_path
 # meshing stuff
 import gmsh
+from gmsh import model as mdl
 from dolfinx.io import gmshio
 from mpi4py import MPI
 # fem stuff
 from dolfinx.fem import FunctionSpace, Function
 from dolfinx.fem.petsc import LinearProblem
 # problem definition
-import ufl
+from ufl import TrialFunction, TestFunction, inner, grad, dx
 # plotting
 import pyvista
 import dolfinx.plot
@@ -27,19 +28,20 @@ def geo2mesh(geofile="square room/square room", max_size=0.1):
 
     gmsh.initialize()
     gmsh.open(geo_path)
-    gmsh.model.occ.synchronize()
+    mdl.occ.synchronize()
     gmsh.option.setNumber("Mesh.MeshSizeMax", max_size)
-    gmsh.model.mesh.generate(gdim)
+    mdl.mesh.generate(gdim)
 
     # convert to dolfinx mesh
     gmsh_model_rank = 0
     mesh_comm = MPI.COMM_WORLD
     omega_mesh, cell_markers, facet_markers = gmshio.model_to_mesh(
-        gmsh.model, mesh_comm, gmsh_model_rank, gdim=gdim)
+        mdl, mesh_comm, gmsh_model_rank, gdim=gdim)
 
     gmsh.finalize()
     
     return omega_mesh, cell_markers, facet_markers
+
 
 def solve_helmholtz(omega_mesh, cell_markers, facet_markers=None, f=20):
     # define function space (field)
@@ -47,8 +49,8 @@ def solve_helmholtz(omega_mesh, cell_markers, facet_markers=None, f=20):
     P_source = FunctionSpace(omega_mesh, ("DG", 0))
 
     # define unknown and test variables
-    p = ufl.TrialFunction(P)
-    q = ufl.TestFunction(P)
+    p = TrialFunction(P)
+    q = TestFunction(P)
 
     # constants
     w = 2*pi*f  # radial frequency
@@ -59,12 +61,14 @@ def solve_helmholtz(omega_mesh, cell_markers, facet_markers=None, f=20):
     Q.x.array[source_cells] = Q_strength
 
     # define weak form
-    a = ufl.inner(ufl.grad(p), ufl.grad(q))*ufl.dx - k**2 * ufl.inner(p, q) * ufl.dx
-    L = RHO * ufl.inner(Q, q) * ufl.dx
+    a = inner(grad(p), grad(q))*dx - k**2 * inner(p, q) * dx
+    L = RHO * inner(Q, q) * dx
 
     # solve
-    problem = LinearProblem(a, L, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
+    problem = LinearProblem(
+        a, L, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
     return problem.solve()
+
 
 def plot_solution(ph, warp=False):
     P = ph.ufl_function_space()
