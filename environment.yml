@@ -8,10 +8,12 @@ dependencies:
   - pyvista
   - python>=3.9
   - numpy
+  - scipy
   - ipykernel
   - matplotlib # for pyvista cmaps
   - trame # for interactive plots
   - ipywidgets # for interactive plots
+  - tbb # to resolve conflict issue (maybe)
   # - sfepy # original FEM package
   # - mpich
 prefix: /Users/felixdubicki-piper/opt/anaconda3/envs/MDM3C-env
