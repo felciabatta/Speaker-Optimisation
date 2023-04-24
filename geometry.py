@@ -3,6 +3,7 @@
 import gmsh
 from gmsh import model as mdl
 import numpy as np
+from functools import wraps
 
 def add_rectangle(dim=(10, 10)):
     return mdl.occ.add_rectangle(0,0,0,dim[0],dim[1])
@@ -51,15 +52,28 @@ def add_speaker(pos=(0, 0), angle=0):
     return speaker_walls, source_boundary
 
 
+def init_finalize(func):
+    """Add initialization and finalization processes to a geometry `func`.
+    """
+    @wraps(func)
+    def wrapper(*args, save_as=False, **kwargs):
+        gmsh.initialize()
+        
+        mdl.add("room")
+        
+        out = func(*args, **kwargs)
+        
+        mdl.occ.synchronize()
+        
+        if save_as:
+            gmsh.write(save_as)
+        
+        gmsh.finalize()
+        return out
+    return wrapper
+
+
+@init_finalize
 def basic_room(pos=(5,5), angle=0):
-    gmsh.initialize()
-    
-    mdl.add("basic_room")
-    
     add_rectangle()
-    add_speaker((5,5), angle)
-    
-    mdl.occ.synchronize()
-    gmsh.write("basic_room.brep")
-    
-    gmsh.finalize()
+    add_speaker(pos, angle)
