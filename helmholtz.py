@@ -41,7 +41,7 @@ def geo2mesh(geofile="square room/square room", max_size=0.1):
     
     return omega_mesh, cell_markers, facet_markers
 
-def solve_helmholtz(omega_mesh, cell_markers, facet_markers, f=20):
+def solve_helmholtz(omega_mesh, cell_markers, facet_markers=None, f=20):
     # define function space (field)
     P = FunctionSpace(omega_mesh, ("Lagrange", 1))
     P_source = FunctionSpace(omega_mesh, ("DG", 0))
@@ -66,16 +66,16 @@ def solve_helmholtz(omega_mesh, cell_markers, facet_markers, f=20):
     problem = LinearProblem(a, L, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
     return problem.solve()
 
-def plot_solution(uh, warped=False):
-    P = uh.ufl_function_space()
+def plot_solution(ph, warped=False):
+    P = ph.ufl_function_space()
     
     # SET UP SOLUTION PLOT DATA
     # make grid
     u_topology, u_cell_types, u_geometry = dolfinx.plot.create_vtk_mesh(P)
     u_grid = pyvista.UnstructuredGrid(u_topology, u_cell_types, u_geometry)
     # add point data
-    u_grid.point_data["u"] = uh.x.array.real
-    u_grid.set_active_scalars("u")
+    u_grid.point_data["p"] = ph.x.array.real
+    u_grid.set_active_scalars("p")
     if warped:
         u_grid = u_grid.warp_by_scalar()
 
