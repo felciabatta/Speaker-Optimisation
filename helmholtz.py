@@ -66,7 +66,7 @@ def solve_helmholtz(omega_mesh, cell_markers, facet_markers=None, f=20):
     problem = LinearProblem(a, L, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
     return problem.solve()
 
-def plot_solution(ph, warped=False):
+def plot_solution(ph, warp=False):
     P = ph.ufl_function_space()
     
     # SET UP SOLUTION PLOT DATA
@@ -76,8 +76,8 @@ def plot_solution(ph, warped=False):
     # add point data
     u_grid.point_data["p"] = ph.x.array.real
     u_grid.set_active_scalars("p")
-    if warped:
-        u_grid = u_grid.warp_by_scalar()
+    if warp:
+        u_grid = u_grid.warp_by_scalar(factor=warp)
 
     # PLOT SOLUTION
     # initialise plotter
