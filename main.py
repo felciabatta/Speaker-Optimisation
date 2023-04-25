@@ -25,4 +25,8 @@ def helmsolve(geofunc=basic_room, pos=(5,5), angle=0*pi, f=[20], max_size=0.05,
         for i, pi in enumerate(ph):
             p_grid[i] = plot_solution(pi, warp=warp)
         return ph, p_grid
-    return ph    
+    return ph
+
+
+def get_spectra(ph):
+    return np.column_stack([p.x.array for p in ph])
