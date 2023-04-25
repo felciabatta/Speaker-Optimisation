@@ -2,11 +2,32 @@
 
 import gmsh
 from gmsh import model as mdl
+from dolfinx.io import gmshio
+from mpi4py import MPI
 import numpy as np
 from functools import wraps
 
 def add_rectangle(dim=(10, 10)):
-    return mdl.occ.add_rectangle(0,0,0,dim[0],dim[1])
+    # boundary coordinates 
+    left = 0
+    right = dim[0]
+    bottom = 0
+    top = dim[1]
+    
+    # define the corners
+    lb = gmsh.model.occ.addPoint(left, bottom, 0)
+    rb = gmsh.model.occ.addPoint(right, bottom, 0)
+    rt = gmsh.model.occ.addPoint(right, top, 0)
+    lt = gmsh.model.occ.addPoint(left, top, 0)
+
+    # define the walls
+    wall_b = gmsh.model.occ.addLine(lb, rb)
+    wall_r = gmsh.model.occ.addLine(rb, rt)
+    wall_t = gmsh.model.occ.addLine(rt, lt)
+    wall_l = gmsh.model.occ.addLine(lt, lb)
+
+    # connect walls
+    return gmsh.model.occ.addCurveLoop([wall_b, wall_r, wall_t, wall_l])
 
 
 def add_speaker(pos=(0, 0), angle=0):
@@ -61,19 +82,57 @@ def init_finalize(func):
         
         mdl.add("room")
         
-        out = func(*args, **kwargs)
+        tags = func(*args, **kwargs)
         
         mdl.occ.synchronize()
         
         if save_as:
-            gmsh.write(save_as)
+            gmsh.write(save_as+".brep")
         
         gmsh.finalize()
-        return out
+        return tags
+    return wrapper
+
+
+def add_mesh(func):
+    """Add a mesh to a geometry `func`."""
+    @wraps(func)
+    def wrapper(*args, max_size=0.1, gdim=2, to_dolfin=False, **kwargs):
+        
+        tags = func(*args, **kwargs)
+        
+        mdl.occ.synchronize()
+        gmsh.option.set_number("Mesh.MeshSizeMax", max_size*2)
+        gmsh.option.set_number("Mesh.Algorithm", 5) # delaunay
+        gmsh.option.set_number("General.Verbosity", 3)
+        mdl.mesh.generate(gdim)
+        mdl.mesh.refine()
+        
+        if to_dolfin:
+            # define rank & comm parallelization
+            gmsh_model_rank = 0
+            mesh_comm = MPI.COMM_WORLD
+            # convert to dolfinx mesh
+            omega_mesh, cell_markers, facet_markers = gmshio.model_to_mesh(
+                mdl, mesh_comm, gmsh_model_rank, gdim=gdim)
+            return tags, omega_mesh, cell_markers, facet_markers
+        
+        return tags
     return wrapper
 
 
 @init_finalize
+@add_mesh
 def basic_room(pos=(5,5), angle=0):
-    add_rectangle()
-    add_speaker(pos, angle)
+    walls = add_rectangle()
+    speaker_walls, source_boundary = add_speaker(pos, angle)
+    
+    air_surf = mdl.occ.add_plane_surface([walls, speaker_walls, source_boundary])
+    source_surf = mdl.occ.add_plane_surface([source_boundary])
+    
+    mdl.occ.synchronize()
+    
+    air_tag = mdl.add_physical_group(2, [air_surf])
+    source_tag = mdl.add_physical_group(2, [source_surf])
+    
+    return air_tag, source_tag
