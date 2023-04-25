@@ -4,7 +4,7 @@ import gmsh
 from gmsh import model as mdl
 from dolfinx.io import gmshio
 from mpi4py import MPI
-import numpy as np
+# import numpy as np
 from functools import wraps
 
 def add_rectangle(dim=(10, 10)):
