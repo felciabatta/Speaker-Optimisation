@@ -30,3 +30,6 @@ def helmsolve(geofunc=basic_room, pos=(5,5), angle=0*pi, f=[20], max_size=0.05,
 
 def get_spectra(ph):
     return np.column_stack([p.x.array for p in ph])
+
+def normalize_cols(array):
+    return array*(1.0/array.sum(1)[:, np.newaxis])
