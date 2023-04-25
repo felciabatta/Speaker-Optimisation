@@ -31,6 +31,7 @@ def geo2mesh(geofile="square room/square room", max_size=0.1):
     mdl.occ.synchronize()
     gmsh.option.setNumber("Mesh.MeshSizeMax", max_size)
     mdl.mesh.generate(gdim)
+    mdl.mesh.refine()
 
     # convert to dolfinx mesh
     gmsh_model_rank = 0
@@ -43,7 +44,8 @@ def geo2mesh(geofile="square room/square room", max_size=0.1):
     return omega_mesh, cell_markers, facet_markers
 
 
-def solve_helmholtz(omega_mesh, cell_markers, facet_markers=None, f=20):
+def helmholtz_problem(omega_mesh, cell_markers, facet_markers, 
+                      source_tag=2, f=20):
     # define function space (field)
     P = FunctionSpace(omega_mesh, ("Lagrange", 1))
     P_source = FunctionSpace(omega_mesh, ("DG", 0))
@@ -57,17 +59,16 @@ def solve_helmholtz(omega_mesh, cell_markers, facet_markers=None, f=20):
     k = w/C  # wave number
     Q_strength = 1 # monopole source strength
     Q = Function(P_source)
-    source_cells = cell_markers.find(2)
+    source_cells = cell_markers.find(source_tag)
     Q.x.array[source_cells] = Q_strength
 
     # define weak form
     a = inner(grad(p), grad(q))*dx - k**2 * inner(p, q) * dx
     L = RHO * inner(Q, q) * dx
 
-    # solve
-    problem = LinearProblem(
+    # formulate problem
+    return LinearProblem(
         a, L, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
-    return problem.solve()
 
 
 def plot_solution(ph, warp=False):
@@ -75,19 +76,24 @@ def plot_solution(ph, warp=False):
     
     # SET UP SOLUTION PLOT DATA
     # make grid
-    u_topology, u_cell_types, u_geometry = dolfinx.plot.create_vtk_mesh(P)
-    u_grid = pyvista.UnstructuredGrid(u_topology, u_cell_types, u_geometry)
+    p_topology, p_cell_types, p_geometry = dolfinx.plot.create_vtk_mesh(P)
+    p_grid = pyvista.UnstructuredGrid(p_topology, p_cell_types, p_geometry)
     # add point data
-    u_grid.point_data["p"] = ph.x.array.real
-    u_grid.set_active_scalars("p")
+    p_grid.point_data["p"] = ph.x.array.real
+    p_max = abs(p_grid.point_data["p"]).max()
+    p_grid.set_active_scalars("p")
     if warp:
-        u_grid = u_grid.warp_by_scalar(factor=warp)
+        scale = warp/p_max
+        p_grid = p_grid.warp_by_scalar(factor=scale)
 
     # PLOT SOLUTION
     # initialise plotter
-    u_plotter = pyvista.Plotter()
+    p_plotter = pyvista.Plotter()
     # add data
-    u_plotter.add_mesh(u_grid, show_edges=0, cmap='seismic')
+    p_plotter.add_mesh(
+        p_grid, show_edges=0, cmap='seismic', clim=[-p_max, p_max])
     # view
-    u_plotter.view_xy()
-    u_plotter.show()
+    p_plotter.view_xy()
+    p_plotter.show()
+    
+    return p_grid
