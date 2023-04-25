@@ -8,6 +8,7 @@ import gmsh
 from gmsh import model as mdl
 from dolfinx.io import gmshio
 from mpi4py import MPI
+from geometry import basic_room
 # fem stuff
 from dolfinx.fem import FunctionSpace, Function
 from dolfinx.fem.petsc import LinearProblem
@@ -113,7 +114,7 @@ def helmsolve(geofunc=basic_room, pos=(5,5), angle=0*pi, f=[20], max_size=0.05,
     # find solutions
     ph = np.empty(Nf, dtype=object)
     for i, fi in enumerate(f):
-        ph[i] = helmholtz_problem(mesh, cells, facets, source, fi).solve()
+        ph[i] = helmproblem(mesh, cells, facets, source, fi).solve()
 
     if plot:
         p_grid = np.empty(Nf, dtype=object)
