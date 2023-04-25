@@ -73,6 +73,12 @@ def add_speaker(pos=(0, 0), angle=0):
     return speaker_walls, source_boundary
 
 
+def refine(N):
+    # NOTE: using multi refine doesn't always appear quicker
+    for n in range(N):
+        mdl.mesh.refine()
+
+
 def init_finalize(func):
     """Add initialization and finalization processes to a geometry `func`.
     """
@@ -97,16 +103,17 @@ def init_finalize(func):
 def add_mesh(func):
     """Add a mesh to a geometry `func`."""
     @wraps(func)
-    def wrapper(*args, max_size=0.1, gdim=2, to_dolfin=False, **kwargs):
+    def wrapper(*args, max_size=0.1, gdim=2, to_dolfin=False, refineit=0, 
+                **kwargs):
         
         tags = func(*args, **kwargs)
         
         mdl.occ.synchronize()
-        gmsh.option.set_number("Mesh.MeshSizeMax", max_size*2)
+        gmsh.option.set_number("Mesh.MeshSizeMax", max_size*(refineit+1))
         gmsh.option.set_number("Mesh.Algorithm", 5) # delaunay
         gmsh.option.set_number("General.Verbosity", 3)
         mdl.mesh.generate(gdim)
-        mdl.mesh.refine()
+        refine(refineit)
         
         if to_dolfin:
             # define rank & comm parallelization
