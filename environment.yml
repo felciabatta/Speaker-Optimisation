@@ -3,13 +3,13 @@ channels:
   - defaults
   - conda-forge
 dependencies:
-  - fenics-dolfinx=0.6.0
-  - python-gmsh
-  - pyvista
+  - fenics-dolfinx=0.6.0 # for fem
+  - python-gmsh # for meshing
+  - pyvista # for plotting
   - python>=3.9
-  - numpy
-  - scipy
-  - ipykernel
+  - numpy 
+  - scipy # optimisation and wasserstein
+  - ipykernel # for interactive python
   - matplotlib # for pyvista cmaps
   - trame # for interactive plots
   - ipywidgets # for interactive plots
