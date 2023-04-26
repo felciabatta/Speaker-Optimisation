@@ -2,7 +2,9 @@
 
 import numpy as np
 from numpy import pi
-from utils import get_path
+from scipy.stats import wasserstein_distance
+from utils import get_path, normalize_cols, distance_mat
+import ot
 # meshing stuff
 import gmsh
 from gmsh import model as mdl
@@ -125,4 +127,30 @@ def helmsolve(geofunc=basic_room, pos=(5,5), angle=0*pi, f=[20], max_size=0.05,
 
 
 def get_spectra(ph):
-    return np.column_stack([p.x.array for p in ph])
+    return abs(np.column_stack([p.x.array for p in ph]))
+
+
+def wasserstein_rms(array):
+    array = normalize_cols(array)
+    N = len(array)
+    W = np.empty((N, N))
+    for i, ai in enumerate(array):
+        for j, aj, in enumerate(array):
+            W[i, j] = wasserstein_distance(ai, aj)
+    # extract above non-duplicates (upper triangle)
+    tri_idx = np.triu_indices(len(W), 1)
+    return np.sqrt((W[tri_idx]**2).mean())
+
+
+def emd_rms(array, distance):
+    array = normalize_cols(array)
+    # number of samples
+    N = len(array)
+    # initialise emd array
+    E = np.empty((N, N))
+    for i, ai in enumerate(array):
+        E[i, :] = ot.sinkhorn2(ai, array.T, distance, 1e-1)
+    # extract above non-duplicates (upper triangle)
+    tri_idx = np.triu_indices(len(E), 1)
+    return np.sqrt((E[tri_idx]**2).mean())
+    
