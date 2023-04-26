@@ -7,7 +7,7 @@ from pathlib import Path
 def get_path(path): return str(Path(path).resolve())
 
 
-def normalize_cols(array):
+def normalize_rows(array):
     return array*(1.0/array.sum(1)[:, np.newaxis])
 
 

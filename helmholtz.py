@@ -3,7 +3,7 @@
 import numpy as np
 from numpy import pi
 from scipy.stats import wasserstein_distance
-from utils import get_path, normalize_cols, distance_mat
+from utils import get_path, normalize_rows, distance_mat
 import ot
 # meshing stuff
 import gmsh
@@ -131,7 +131,7 @@ def get_spectra(ph):
 
 
 def wasserstein_rms(array):
-    array = normalize_cols(array)
+    array = normalize_rows(array)
     N = len(array)
     W = np.empty((N, N))
     for i, ai in enumerate(array):
@@ -143,7 +143,7 @@ def wasserstein_rms(array):
 
 
 def emd_rms(array, distance):
-    array = normalize_cols(array)
+    array = normalize_rows(array)
     # number of samples
     N = len(array)
     # initialise emd array

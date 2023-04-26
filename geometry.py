@@ -111,7 +111,7 @@ def add_mesh(func):
         mdl.occ.synchronize()
         gmsh.option.set_number("Mesh.MeshSizeMax", max_size*2**(refineit+1))
         gmsh.option.set_number("Mesh.Algorithm", 5) # delaunay
-        gmsh.option.set_number("General.Verbosity", 3)
+        gmsh.option.set_number("General.Verbosity", 1) # 2–3 for warnings
         mdl.mesh.generate(gdim)
         refine(refineit)
         
