@@ -4,7 +4,7 @@ import gmsh
 from gmsh import model as mdl
 from dolfinx.io import gmshio
 from mpi4py import MPI
-# import numpy as np
+import numpy as np
 from functools import wraps
 
 def add_rectangle(dim=(10, 10)):
@@ -30,7 +30,7 @@ def add_rectangle(dim=(10, 10)):
     return gmsh.model.occ.addCurveLoop([wall_b, wall_r, wall_t, wall_l])
 
 
-def add_speaker(pos=(0, 0), angle=0):
+def add_speaker(pos=(0, 0), angle=0, r=0.2, gap=0.1, thickness=0.1):
     
     r = 0.2
     thickness = 0.1
@@ -71,6 +71,11 @@ def add_speaker(pos=(0, 0), angle=0):
     source_boundary = mdl.occ.add_curve_loop([circle])
     
     return speaker_walls, source_boundary
+
+
+def speaker_radial_boundary(r=0.2, gap=0.1, thickness=0.1):
+    D = r + gap + thickness
+    return np.sqrt(2)*D + gap
 
 
 def refine(N):
