@@ -1,40 +1,18 @@
 import numpy as np
 from scipy.stats import wasserstein_distance as WashMyBalls
-import random
 
-x1 =[1,2,3]
-x2 =[4,5,6]
-
-""" 
-x1 = list(np.random.rand(1,10))
-x2 = list(np.random.rand(1,10)) """
-""" x3 = list(np.random.rand(1,10))
+x1 = np.random.rand(1,10)
+x2 = np.random.rand(1,10)
+x3 = np.random.rand(1,10)
 x4 = np.random.rand(1,10)
 x5 = np.random.rand(1,10)
 x6 = np.random.rand(1,10)
 x7 = np.random.rand(1,10)
 x8 = np.random.rand(1,10)
 x9 = np.random.rand(1,10)
-x10 = np.random.rand(1,10) """
+x10 = np.random.rand(1,10)
 
-# SampleData = [x1,x2]
-
-print(WashMyBalls(x1,x2))
-
-
-""" IndexPairs = []
-for i in range(len(SampleData)-1):
-    Array1 = SampleData[i]
-    for n in range(i+1, len(SampleData)):
-        Array2 = SampleData[n]
-        if all(elem in IndexPairs for elem in [[i, n], [n, i]]):
-            continue
-        IndexPairs.append([i,n])
-         """
-
-
-Total = WashMyBalls(x1,x2)
-
+SampleData = [x1,x2,x3,x4,x5,x6,x7,x8,x9,x10]
 
 def WasserSwag(Data):
     IndexPairs = []
@@ -44,13 +22,13 @@ def WasserSwag(Data):
             if all(elem in IndexPairs for elem in [[i, n], [n, i]]):
                 continue
             IndexPairs.append([i,n])
-            print(i,n)
-        D1 = Data[i]
-        D2 = Data[n]
-        print(D1,D2)
-        WashYourBalls = WashMyBalls(D1,D2)
+            D1 = Data[i][0].tolist()
+            D2 = Data[n][0].tolist()
+            WashYourBalls = WashMyBalls(D1,D2)
+            Total += WashYourBalls
     return Total
     
+print(WasserSwag(SampleData))
 
 
 
