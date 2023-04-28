@@ -130,4 +130,9 @@ dmypy.json
 
 
 # OTHER
-.DS_store
+.DS_Store
+/*.vtk
+*_sample.py
+*3M points.vtk
+/*.brep
+/*.geo*
