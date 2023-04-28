@@ -8,7 +8,7 @@ from scipy.optimize import basinhopping, brute
 from scipy.optimize import Bounds
 
 
-def f_range(f1, f2, N):
+def f_range(f1, f2, N=10):
     f1, f2 = np.log10([f1, f2])
     return np.logspace(f1, f2, N)
 
@@ -47,7 +47,7 @@ def speaker_optimization_problem(geofunc=basic_room, f=[20, 40], N=100):
     return objective_function
 
 
-def rectangular_bounds(x, y):
+def rectangular_bounds(x, y, theta=[-pi/4, pi/4]):
     theta = [-pi, pi]
     U = np.array([x, y, theta])
 
@@ -70,8 +70,12 @@ def basinhop_optimization(geofunc=basic_room, U0=[2, 5, 0], f=[20, 40],
 
 def brute_optimization(geofunc=basic_room, f=[20, 40],
                        N_splits=3, N_sample=100,
-                       x_bound=[0,5], y_bound=[0, 5]):
+                       x_bound=[0,5], y_bound=[0, 5], plot=False):
     func = speaker_optimization_problem(geofunc, f, N_sample)
     range, _ = rectangular_bounds(x_bound, y_bound)
     sol = brute(func, range, Ns=N_splits, finish=None)
+    
+    if plot:
+        helmsolve(pos=sol[:2], angle=sol[2], f=f, plot=True, warp=1)
+    
     return sol
