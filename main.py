@@ -70,12 +70,13 @@ def basinhop_optimization(geofunc=basic_room, U0=[2, 5, 0], f=[20, 40],
 def brute_optimization(geofunc=basic_room, f=[20, 40],
                        N_splits=3, N_sample=50,
                        x_bound=[0,5], y_bound=[0, 5], 
-                       plot=False, warp=0):
+                       plot=False, warp=0, save_as=False):
     func = speaker_optimization_problem(geofunc, f, N_sample)
     range, _ = rectangular_bounds(x_bound, y_bound)
     sol = brute(func, range, Ns=N_splits, finish=None)
     
     if plot:
-        helmsolve(pos=sol[:2], angle=sol[2], f=f, plot=True, warp=warp)
+        helmsolve(pos=sol[:2], angle=sol[2], f=f, plot=True, warp=warp, 
+                  save_as=save_as)
     
     return sol
