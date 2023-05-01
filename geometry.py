@@ -6,6 +6,7 @@ from dolfinx.io import gmshio
 from mpi4py import MPI
 import numpy as np
 from functools import wraps
+import random
 
 def add_rectangle(dim=(10, 10)):
     # boundary coordinates 
@@ -139,6 +140,33 @@ def basic_room(pos=(5,5), angle=0):
     walls = add_rectangle()
     speaker_walls, source_boundary = add_speaker(pos, angle)
     
+    air_surf = mdl.occ.add_plane_surface([walls, speaker_walls, source_boundary])
+    source_surf = mdl.occ.add_plane_surface([source_boundary])
+    
+    mdl.occ.synchronize()
+    
+    air_tag = mdl.add_physical_group(2, [air_surf])
+    source_tag = mdl.add_physical_group(2, [source_surf])
+    
+    return air_tag, source_tag
+
+
+@init_finalize
+@add_mesh
+def room_with_objects(pos=(5,5), angle=0):
+    walls = add_rectangle()
+    speaker_walls, source_boundary = add_speaker(pos, angle)
+    positions = np.zeros(5)
+    rand_x = random.sample(range(10),5)
+    rand_y = random.sample(range(10),5)
+    for x in rand_x:
+        for y in rand_y:
+            positions[x] = [rand_x[x], rand_y[y]]
+    rad = [0.1,0.1,0.3,0.2,0.4]
+    c = np.zeros(5)
+    for pos in positions:
+        c[pos] = mdl.occ.add_circle(*positions[pos], 0, rad[pos])
+
     air_surf = mdl.occ.add_plane_surface([walls, speaker_walls, source_boundary])
     source_surf = mdl.occ.add_plane_surface([source_boundary])
     

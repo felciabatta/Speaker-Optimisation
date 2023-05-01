@@ -24,6 +24,7 @@ import dolfinx.plot
 C = 343  # speed of sound
 RHO = 1.293  # density of air
 MESHDIR = "geomeshes/"
+FIGUREDIR = "figures/"
 
 def geo2mesh(geofile="square room/square room", max_size=0.1):
 
@@ -75,7 +76,7 @@ def helmproblem(omega_mesh, cell_markers, facet_markers,
         a, L, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
 
 
-def plot_solution(ph, warp=False):
+def plot_solution(ph, warp=False, save_as=False):
     P = ph.ufl_function_space()
     
     # SET UP SOLUTION PLOT DATA
@@ -99,12 +100,13 @@ def plot_solution(ph, warp=False):
     # view
     p_plotter.view_xy()
     p_plotter.show()
-    
+    if save_as:
+        p_plotter.save_graphic(FIGUREDIR+save_as+".pdf", title=save_as)
     return p_grid
 
 
 def helmsolve(geofunc=basic_room, pos=(5,5), angle=0*pi, f=[20], max_size=0.05, 
-              warp=0, refineit=3, plot=False):
+              warp=0, refineit=3, plot=False, save_as=False):
     
     # number of frequencies
     Nf = len(f)
@@ -121,7 +123,7 @@ def helmsolve(geofunc=basic_room, pos=(5,5), angle=0*pi, f=[20], max_size=0.05,
     if plot:
         p_grid = np.empty(Nf, dtype=object)
         for i, pi in enumerate(ph):
-            p_grid[i] = plot_solution(pi, warp=warp)
+            p_grid[i] = plot_solution(pi, warp=warp, save_as=save_as+f" {f[i]}Hz")
         return ph, p_grid
     return ph
 
