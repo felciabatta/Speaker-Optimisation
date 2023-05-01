@@ -48,7 +48,6 @@ def speaker_optimization_problem(geofunc=basic_room, f=[20, 40], N=100):
 
 
 def rectangular_bounds(x, y, theta=[-pi/4, pi/4]):
-    theta = [-pi, pi]
     U = np.array([x, y, theta])
 
     R = speaker_radial_boundary()
@@ -69,13 +68,14 @@ def basinhop_optimization(geofunc=basic_room, U0=[2, 5, 0], f=[20, 40],
 
 
 def brute_optimization(geofunc=basic_room, f=[20, 40],
-                       N_splits=3, N_sample=100,
-                       x_bound=[0,5], y_bound=[0, 5], plot=False):
+                       N_splits=3, N_sample=50,
+                       x_bound=[0,5], y_bound=[0, 5], 
+                       plot=False, warp=0):
     func = speaker_optimization_problem(geofunc, f, N_sample)
     range, _ = rectangular_bounds(x_bound, y_bound)
     sol = brute(func, range, Ns=N_splits, finish=None)
     
     if plot:
-        helmsolve(pos=sol[:2], angle=sol[2], f=f, plot=True, warp=1)
+        helmsolve(pos=sol[:2], angle=sol[2], f=f, plot=True, warp=warp)
     
     return sol
