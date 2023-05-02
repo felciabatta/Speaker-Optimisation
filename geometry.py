@@ -6,7 +6,17 @@ from dolfinx.io import gmshio
 from mpi4py import MPI
 import numpy as np
 from functools import wraps
-import random
+
+# globally defined random position things
+r_max = 0.4
+r_buff = r_max+0.05
+d_buff = r_max*2 + 0.05
+n = 11
+positions = np.empty((n, 2))
+xrange = np.arange(0+r_buff, 10-r_buff, d_buff)
+yrange = np.arange(6+r_buff, 10-r_buff, d_buff)
+positions[:, 0] = np.random.choice(xrange, n, replace=False)
+positions[:, 1] = np.random.choice(yrange, n)
 
 def add_rectangle(dim=(10, 10)):
     # boundary coordinates 
@@ -156,18 +166,12 @@ def basic_room(pos=(5,5), angle=0):
 def room_with_objects(pos=(5,5), angle=0):
     walls = add_rectangle()
     speaker_walls, source_boundary = add_speaker(pos, angle)
-    positions = np.zeros(5)
-    rand_x = random.sample(range(10),5)
-    rand_y = random.sample(range(10),5)
-    for x in rand_x:
-        for y in rand_y:
-            positions[x] = [rand_x[x], rand_y[y]]
-    rad = [0.1,0.1,0.3,0.2,0.4]
-    c = np.zeros(5)
-    for pos in positions:
-        c[pos] = mdl.occ.add_circle(*positions[pos], 0, rad[pos])
 
-    air_surf = mdl.occ.add_plane_surface([walls, speaker_walls, source_boundary])
+    circles = [mdl.occ.add_circle(*p, 0, r_max) for p in positions]
+    circle_bounds = [mdl.occ.add_curve_loop([c]) for c in circles]
+
+    air_surf = mdl.occ.add_plane_surface(
+        [walls, speaker_walls, source_boundary, *circle_bounds])
     source_surf = mdl.occ.add_plane_surface([source_boundary])
     
     mdl.occ.synchronize()
