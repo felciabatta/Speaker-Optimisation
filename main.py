@@ -1,16 +1,16 @@
 """Run Helmholtz simulations."""
 
 from helmholtz import helmsolve, wasserstein_rms, get_spectra
-from geometry import basic_room, speaker_radial_boundary
+from geometry import basic_room, speaker_radial_boundary, room_with_objects
 import numpy as np
 from numpy import pi
 from scipy.optimize import basinhopping, brute
 from scipy.optimize import Bounds
 
 
-def f_range(f1, f2, N=10):
+def f_range(f1=20, f2=2000, N=11):
     f1, f2 = np.log10([f1, f2])
-    return np.logspace(f1, f2, N)
+    return np.logspace(f1, f2, N).astype(int)
 
 
 def speaker_optimization_problem(geofunc=basic_room, f=[20, 40], N=100):
@@ -68,15 +68,15 @@ def basinhop_optimization(geofunc=basic_room, U0=[2, 5, 0], f=[20, 40],
 
 
 def brute_optimization(geofunc=basic_room, f=[20, 40],
-                       N_splits=3, N_sample=50,
+                       N_splits=3, N_sample=100,
                        x_bound=[0,5], y_bound=[0, 5], 
-                       plot=False, warp=0, save_as=False):
+                       plot=False, warp=0, save_as=""):
     func = speaker_optimization_problem(geofunc, f, N_sample)
     range, _ = rectangular_bounds(x_bound, y_bound)
     sol = brute(func, range, Ns=N_splits, finish=None)
     
     if plot:
-        helmsolve(pos=sol[:2], angle=sol[2], f=f, plot=True, warp=warp, 
+        helmsolve(geofunc, pos=sol[:2], angle=sol[2], f=f, plot=True, warp=warp, 
                   save_as=save_as)
     
     return sol
