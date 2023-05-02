@@ -10,7 +10,7 @@ import gmsh
 from gmsh import model as mdl
 from dolfinx.io import gmshio
 from mpi4py import MPI
-from geometry import basic_room
+from geometry import basic_room, room_with_objects
 # fem stuff
 from dolfinx.fem import FunctionSpace, Function
 from dolfinx.fem.petsc import LinearProblem
@@ -24,7 +24,7 @@ import dolfinx.plot
 C = 343  # speed of sound
 RHO = 1.293  # density of air
 MESHDIR = "geomeshes/"
-FIGUREDIR = "figures/"
+FIGDIR = "figures/"
 
 def geo2mesh(geofile="square room/square room", max_size=0.1):
 
@@ -76,7 +76,7 @@ def helmproblem(omega_mesh, cell_markers, facet_markers,
         a, L, petsc_options={"ksp_type": "preonly", "pc_type": "lu"})
 
 
-def plot_solution(ph, warp=False, save_as=False):
+def plot_solution(ph, warp=False, save_as=""):
     P = ph.ufl_function_space()
     
     # SET UP SOLUTION PLOT DATA
@@ -84,9 +84,9 @@ def plot_solution(ph, warp=False, save_as=False):
     p_topology, p_cell_types, p_geometry = dolfinx.plot.create_vtk_mesh(P)
     p_grid = pyvista.UnstructuredGrid(p_topology, p_cell_types, p_geometry)
     # add point data
-    p_grid.point_data["p"] = ph.x.array.real
-    p_max = abs(p_grid.point_data["p"]).max()
-    p_grid.set_active_scalars("p")
+    p_grid.point_data["Pressure"] = ph.x.array.real
+    p_max = abs(p_grid.point_data["Pressure"]).max()
+    p_grid.set_active_scalars("Pressure")
     if warp:
         scale = warp/p_max
         p_grid = p_grid.warp_by_scalar(factor=scale)
@@ -96,17 +96,21 @@ def plot_solution(ph, warp=False, save_as=False):
     p_plotter = pyvista.Plotter()
     # add data
     p_plotter.add_mesh(
-        p_grid, show_edges=0, cmap='seismic', clim=[-p_max, p_max])
+        p_grid, show_edges=0, cmap='seismic', clim=[-p_max, p_max],
+        scalar_bar_args=dict(vertical=True, position_x=0.75, width=0.2))
     # view
     p_plotter.view_xy()
+    p_plotter.camera.tight()
     p_plotter.show()
     if save_as:
-        p_plotter.save_graphic(FIGUREDIR+save_as+".pdf", title=save_as)
+        p_plotter.window_size = 2000, 2000
+        p_plotter.save_graphic(FIGDIR+save_as+".pdf", title=save_as, 
+                               raster=False, painter=True)
     return p_grid
 
 
 def helmsolve(geofunc=basic_room, pos=(5,5), angle=0*pi, f=[20], max_size=0.05, 
-              warp=0, refineit=3, plot=False, save_as=False):
+              warp=0, refineit=3, plot=False, save_as=""):
     
     # number of frequencies
     Nf = len(f)
