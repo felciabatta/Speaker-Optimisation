@@ -136,3 +136,4 @@ dmypy.json
 *3M points.vtk
 /*.brep
 /*.geo*
+*.pdf
